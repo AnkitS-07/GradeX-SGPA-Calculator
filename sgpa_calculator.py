@@ -76,7 +76,7 @@ with st.sidebar:
                 st.session_state.current_session_name = session['name']
                 st.session_state.current_subjects = session['subjects'].copy()
                 st.success(f"Loaded session: {session['name']}")
-                st.experimental_rerun()
+                st.rerun()
 
             if col2.button("✏️", key=f"rename_{idx}"):
                 new_name = st.text_input(f"Rename '{session['name']}' to:", key=f"rename_input_{idx}")
