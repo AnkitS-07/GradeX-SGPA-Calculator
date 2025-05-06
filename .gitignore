@@ -1,0 +1,14 @@
+# Ignore editor settings and Python cache
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+.DS_Store
+
+# Ignore large or unnecessary files
+*.log
+*.sqlite3
+*.db
