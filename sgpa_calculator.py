@@ -192,4 +192,7 @@ if st.session_state.current_subjects:
             st.session_state.current_session_name = ""
             st.session_state.current_subjects = []
             st.rerun()
+ # Footer
+st.markdown("---")
+st.markdown("<center><sub>Made with 💡 by Ankit Sarkar</sub></center>", unsafe_allow_html=True)
 
