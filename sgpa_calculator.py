@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import os
 from io import BytesIO
 
 st.set_page_config(page_title="SGPA Grade Target Calculator", layout="centered")
@@ -40,9 +41,18 @@ grade_data = {
 }
 grade_options = list(grade_data.keys())
 
-# Init session state
-if "past_sessions" not in st.session_state:
+SESSIONS_FILE = "sgpa_sessions.json"
+
+# Load saved sessions from file if exists
+if os.path.exists(SESSIONS_FILE):
+    with open(SESSIONS_FILE, "r") as f:
+        st.session_state.past_sessions = json.load(f)
+else:
     st.session_state.past_sessions = []
+
+def save_sessions():
+    with open(SESSIONS_FILE, "w") as f:
+        json.dump(st.session_state.past_sessions, f, indent=4)
 
 if "current_subjects" not in st.session_state:
     st.session_state.current_subjects = []
@@ -54,19 +64,7 @@ if "current_session_name" not in st.session_state:
 with st.sidebar:
     st.markdown("## 📚 Past SGPA Sessions")
 
-    # Export Button
-    if st.button("📄 Export Sessions"):
-        export_data = json.dumps(st.session_state.past_sessions, indent=4)
-        st.download_button("📅 Download JSON", data=export_data, file_name="sgpa_sessions.json", mime="application/json")
-
-    # Import Button
-    uploaded_file = st.file_uploader("📂 Upload SGPA Sessions JSON", type=["json"])
-    if uploaded_file:
-        imported_data = json.load(uploaded_file)
-        st.session_state.past_sessions.extend(imported_data)
-        st.success("✅ Sessions imported successfully!")
-        st.experimental_rerun()
-
+    
     if st.session_state.past_sessions:
         st.markdown("### 📂 Load Previous Session")
         for idx, session in enumerate(st.session_state.past_sessions):
@@ -82,13 +80,15 @@ with st.sidebar:
                 new_name = st.text_input(f"Rename '{session['name']}' to:", key=f"rename_input_{idx}")
                 if new_name.strip():
                     st.session_state.past_sessions[idx]['name'] = new_name.strip()
+                    save_sessions()
                     st.success(f"Renamed to: {new_name.strip()}")
-                    st.experimental_rerun()
+                    st.rerun()
 
-            if col3.button("🗑️", key=f"delete_{idx}"):
+            if col3.button("❌", key=f"delete_{idx}"):
                 st.session_state.past_sessions.pop(idx)
+                save_sessions()
                 st.success(f"Deleted session: {session['name']}")
-                st.experimental_rerun()
+                st.rerun()
     else:
         st.caption("No previous sessions yet.")
 
@@ -97,7 +97,7 @@ with st.sidebar:
         st.session_state.current_subjects = []
 
 # Main Title
-st.title("📈 SGPA GradeX Calculator")
+st.title("📈 GradeX - SGPA Target Calculator")
 
 # Step 1: Get session name
 if not st.session_state.current_session_name:
@@ -179,15 +179,17 @@ if st.session_state.current_subjects:
             st.error(f"Error in desired grade of {name}")
     else:
         sgpa = total_points / total_credits if total_credits else 0
-        st.success(f"🎯 Estimated SGPA: {sgpa:.2f}")
+        st.success(f"🌟 Estimated SGPA: {sgpa:.2f}")
 
-        if st.button("💾 Save This Session"):
+        if st.button("📅 Save This Session"):
             st.session_state.past_sessions.append({
                 "name": st.session_state.current_session_name,
                 "subjects": updated_subjects,
                 "sgpa": sgpa
             })
+            save_sessions()
             st.success("Session saved!")
             st.session_state.current_session_name = ""
             st.session_state.current_subjects = []
             st.rerun()
+
